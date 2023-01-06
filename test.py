@@ -73,6 +73,12 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * self.x, tile_height * self.y)
 
+    # def update(self, bottle, duration):
+    #     if pygame.sprite.collide_rect(player, bottle):
+    #         if duration == 'left':
+    #             self.move(self.x - 1, self.y)
+    #             bottle.move(self.x - 1, self.y)
+
 
 # Бутылка
 class Bottle(pygame.sprite.Sprite):
