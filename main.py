@@ -22,11 +22,11 @@ def load_image(name):
 tile_images = {
     'wall': load_image('brickwall.png'),
     'empty': load_image('floor.png'),
-    'object': load_image('bottle.png'),
     'place': load_image('place.png')
 }
-player_image = load_image('builder.png')
-
+player_image = load_image('worker.png')
+bottle_image = load_image('bottle.png')
+clock = pygame.time.Clock()
 tile_width = tile_height = 50
 
 
@@ -55,8 +55,48 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
         self.image = player_image
+        self.x = pos_x
+        self.y = pos_y
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
+
+
+class Bottle(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(player_group, all_sprites)
+        self.image = bottle_image
+        self.x = pos_x
+        self.y = pos_y
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+
+
+def start_screen():
+    intro_text = ['Нажмите на любую кнопку',
+                  '          для начала игры']
+
+    fon = pygame.transform.scale(load_image('fon.jpg'), (1000, 750))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 50)
+    text_coord = 200
+    for i in intro_text:
+        string_rendered = font.render(i, True, 'yellow')
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 120
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def generate_level(level):
@@ -71,10 +111,11 @@ def generate_level(level):
                 Tile('empty', x, y)
                 new_player = Player(x, y)
             elif level[y][x] == '$':
-                Tile('object', x, y)
+                Tile('empty', x, y)
+                bottle = Bottle(x, y)
             elif level[y][x] == '&':
                 Tile('place', x, y)
-    return new_player, x, y
+    return new_player, bottle, x, y
 
 
 if __name__ == '__main__':
@@ -82,14 +123,38 @@ if __name__ == '__main__':
     pygame.display.set_caption('Кладовщик')
     size = width, height = 1000, 750
     screen = pygame.display.set_mode(size)
-    screen.fill('white')
+    start_screen()
     mapp = load_level('level1.txt')
-    player, level_x, level_y = generate_level(mapp)
+    player, bottle, level_x, level_y = generate_level(mapp)
     all_sprites.draw(screen)
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    if player.rect.x - tile_width > 0:
+                        if mapp[player.y][player.x - 1] != '#':
+                            player.x -= 1
+                            player.rect.x -= tile_width
+                if event.key == pygame.K_UP:
+                    if player.rect.y - tile_height > 0:
+                        if mapp[player.y - 1][player.x] != '#':
+                            player.y -= 1
+                            player.rect.y -= tile_height
+                if event.key == pygame.K_DOWN:
+                    if player.rect.y + tile_height < height:
+                        if mapp[player.y + 1][player.x] != '#':
+                            player.y += 1
+                            player.rect.y += tile_height
+                if event.key == pygame.K_RIGHT:
+                    if player.rect.x + tile_width < width:
+                        if mapp[player.y][player.x + 1] != '#':
+                            player.x += 1
+                            player.rect.x += tile_width
+        screen.fill((0, 0, 0))
+        all_sprites.draw(screen)
+        player_group.draw(screen)
         pygame.display.flip()
     pygame.quit()
