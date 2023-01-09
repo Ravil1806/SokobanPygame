@@ -1,3 +1,5 @@
+from time import sleep
+
 import pygame
 import os
 import sys
@@ -73,6 +75,9 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * self.x, tile_height * self.y)
 
+    def update(self, bottle):
+        print(pygame.sprite.spritecollide(self, bottles_group, True))
+
 
 # Бутылка
 class Bottle(pygame.sprite.Sprite):
@@ -134,10 +139,10 @@ def generate_level(level):
                 new_player = Player(x, y)
             elif level[y][x] == '$':
                 Tile('empty', x, y)
-                bottle = Bottle(x, y)
+                Bottle(x, y)
             elif level[y][x] == '&':
                 Tile('place', x, y)
-    return new_player, bottle, x, y
+    return new_player, x, y
 
 
 # Основной цикл игры
@@ -149,9 +154,13 @@ if __name__ == '__main__':
     start_screen()
     font = pygame.font.Font(None, 50)
     mapp = load_level('level1.txt')
-    player, bottle, level_x, level_y = generate_level(mapp)
+    player, level_x, level_y = generate_level(mapp)
     all_sprites.draw(screen)
+
+    moveLeft, moveRight, moveUp, moveDown = False, False, False, False
+
     running = True
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -159,29 +168,54 @@ if __name__ == '__main__':
             # Управление
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    if mapp[player.y][player.x - 1] == '$':
-                        pass
-                    elif mapp[player.y][player.x - 1] != '#':
-                        player.move(player.x - 1, player.y)
-                    moves += 1
-                if event.key == pygame.K_UP:
-                    if mapp[player.y - 1][player.x] == '$':
-                        pass
-                    elif mapp[player.y - 1][player.x] != '#':
-                        player.move(player.x, player.y - 1)
-                    moves += 1
-                if event.key == pygame.K_DOWN:
-                    if mapp[player.y + 1][player.x] == '$':
-                        pass
-                    elif mapp[player.y + 1][player.x] != '#':
-                        player.move(player.x, player.y + 1)
-                    moves += 1
+                    moveRight = False
+                    moveLeft = True
                 if event.key == pygame.K_RIGHT:
-                    if mapp[player.y][player.x + 1] == '$':
-                        pass
-                    elif mapp[player.y][player.x + 1] != '#':
-                        player.move(player.x + 1, player.y)
-                    moves += 1
+                    moveLeft = False
+                    moveRight = True
+                if event.key == pygame.K_UP:
+                    moveDown = False
+                    moveUp = True
+                if event.key == pygame.K_DOWN:
+                    moveUp = False
+                    moveDown = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    moveLeft = False
+                if event.key == pygame.K_RIGHT:
+                    moveRight = False
+                if event.key == pygame.K_UP:
+                    moveUp = False
+                if event.key == pygame.K_DOWN:
+                    moveDown = False
+        if moveLeft:
+            if mapp[player.y][player.x - 1] == '$':
+                pass
+            elif mapp[player.y][player.x - 1] != '#':
+                player.move(player.x - 1, player.y)
+                moves += 1
+            sleep(0.2)
+        if moveRight:
+            if mapp[player.y][player.x + 1] == '$':
+                pass
+            elif mapp[player.y][player.x + 1] != '#':
+                player.move(player.x + 1, player.y)
+                moves += 1
+            sleep(0.2)
+        if moveUp:
+            if mapp[player.y - 1][player.x] == '$':
+                pass
+            elif mapp[player.y - 1][player.x] != '#':
+                player.move(player.x, player.y - 1)
+                moves += 1
+            sleep(0.2)
+        if moveDown:
+            if mapp[player.y + 1][player.x] == '$':
+                pass
+            elif mapp[player.y + 1][player.x] != '#':
+                player.move(player.x, player.y + 1)
+                moves += 1
+            sleep(0.2)
         clock.tick(FPS)
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
