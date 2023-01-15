@@ -1,10 +1,9 @@
 from time import sleep
-
 import pygame
 import os
 import sys
 
-FPS = 60
+FPS = 30
 
 player = None
 moves = 0
@@ -75,9 +74,6 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * self.x, tile_height * self.y)
 
-    def update(self, bottle):
-        print(pygame.sprite.spritecollide(self, bottles_group, True))
-
 
 # Бутылка
 class Bottle(pygame.sprite.Sprite):
@@ -94,6 +90,9 @@ class Bottle(pygame.sprite.Sprite):
         self.y = y
         self.rect = self.image.get_rect().move(
             tile_width * self.x, tile_height * self.y)
+
+    def update(self, x, y):
+        self.move(x, y)
 
 
 # Заставка игры
@@ -153,8 +152,8 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode(size)
     start_screen()
     font = pygame.font.Font(None, 50)
-    mapp = load_level('level1.txt')
-    player, level_x, level_y = generate_level(mapp)
+    level_1 = load_level('level1.txt')
+    player, level_x, level_y = generate_level(level_1)
     all_sprites.draw(screen)
 
     moveLeft, moveRight, moveUp, moveDown = False, False, False, False
@@ -188,32 +187,49 @@ if __name__ == '__main__':
                     moveUp = False
                 if event.key == pygame.K_DOWN:
                     moveDown = False
+
         if moveLeft:
-            if mapp[player.y][player.x - 1] == '$':
-                pass
-            elif mapp[player.y][player.x - 1] != '#':
-                player.move(player.x - 1, player.y)
+            if level_1[player.y][player.x - 1] != '#':
+                if level_1[player.y][player.x - 2] != '#':
+                    player.move(player.x - 1, player.y)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
+                        pygame.sprite.spritecollideany(player, bottles_group)\
+                            .update(player.x - 1, player.y)
+                else:
+                    player.move(player.x - 1, player.y)
                 moves += 1
             sleep(0.2)
         if moveRight:
-            if mapp[player.y][player.x + 1] == '$':
-                pass
-            elif mapp[player.y][player.x + 1] != '#':
-                player.move(player.x + 1, player.y)
+            if level_1[player.y][player.x + 1] != '#':
+                if level_1[player.y][player.x + 2] != '#':
+                    player.move(player.x + 1, player.y)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
+                        pygame.sprite.spritecollideany(player, bottles_group)\
+                            .update(player.x + 1, player.y)
+                else:
+                    player.move(player.x + 1, player.y)
                 moves += 1
             sleep(0.2)
         if moveUp:
-            if mapp[player.y - 1][player.x] == '$':
-                pass
-            elif mapp[player.y - 1][player.x] != '#':
-                player.move(player.x, player.y - 1)
+            if level_1[player.y - 1][player.x] != '#':
+                if level_1[player.y - 2][player.x] != '#':
+                    player.move(player.x, player.y - 1)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
+                        pygame.sprite.spritecollideany(player, bottles_group)\
+                            .update(player.x, player.y - 1)
+                else:
+                    player.move(player.x, player.y - 1)
                 moves += 1
             sleep(0.2)
         if moveDown:
-            if mapp[player.y + 1][player.x] == '$':
-                pass
-            elif mapp[player.y + 1][player.x] != '#':
-                player.move(player.x, player.y + 1)
+            if level_1[player.y + 1][player.x] != '#':
+                if level_1[player.y + 2][player.x] != '#':
+                    player.move(player.x, player.y + 1)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
+                        pygame.sprite.spritecollideany(player, bottles_group)\
+                            .update(player.x, player.y + 1)
+                else:
+                    player.move(player.x, player.y + 1)
                 moves += 1
             sleep(0.2)
         clock.tick(FPS)
