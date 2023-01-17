@@ -232,6 +232,7 @@ if __name__ == '__main__':
                     player.move(player.x, player.y + 1)
                 moves += 1
             sleep(0.2)
+
         clock.tick(FPS)
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
