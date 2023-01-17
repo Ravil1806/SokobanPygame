@@ -1,5 +1,4 @@
 from time import sleep
-
 import pygame
 import os
 import sys
@@ -194,7 +193,8 @@ if __name__ == '__main__':
                 if level_1[player.y][player.x - 2] != '#':
                     player.move(player.x - 1, player.y)
                     if pygame.sprite.spritecollideany(player, bottles_group):
-                        pygame.sprite.spritecollideany(player, bottles_group).update(player.x - 1, player.y)
+                        pygame.sprite.spritecollideany(player, bottles_group)\
+                            .update(player.x - 1, player.y)
                 else:
                     player.move(player.x - 1, player.y)
                 moves += 1
@@ -204,7 +204,8 @@ if __name__ == '__main__':
                 if level_1[player.y][player.x + 2] != '#':
                     player.move(player.x + 1, player.y)
                     if pygame.sprite.spritecollideany(player, bottles_group):
-                        pygame.sprite.spritecollideany(player, bottles_group).update(player.x + 1, player.y)
+                        pygame.sprite.spritecollideany(player, bottles_group)\
+                            .update(player.x + 1, player.y)
                 else:
                     player.move(player.x + 1, player.y)
                 moves += 1
@@ -214,7 +215,8 @@ if __name__ == '__main__':
                 if level_1[player.y - 2][player.x] != '#':
                     player.move(player.x, player.y - 1)
                     if pygame.sprite.spritecollideany(player, bottles_group):
-                        pygame.sprite.spritecollideany(player, bottles_group).update(player.x, player.y - 1)
+                        pygame.sprite.spritecollideany(player, bottles_group)\
+                            .update(player.x, player.y - 1)
                 else:
                     player.move(player.x, player.y - 1)
                 moves += 1
@@ -224,7 +226,8 @@ if __name__ == '__main__':
                 if level_1[player.y + 2][player.x] != '#':
                     player.move(player.x, player.y + 1)
                     if pygame.sprite.spritecollideany(player, bottles_group):
-                        pygame.sprite.spritecollideany(player, bottles_group).update(player.x, player.y + 1)
+                        pygame.sprite.spritecollideany(player, bottles_group)\
+                            .update(player.x, player.y + 1)
                 else:
                     player.move(player.x, player.y + 1)
                 moves += 1
@@ -237,4 +240,5 @@ if __name__ == '__main__':
         player_group.draw(screen)
         screen.blit(font.render(f'Шагов: {moves}', True, 'black'), (10, 10))
         pygame.display.flip()
+
     pygame.quit()

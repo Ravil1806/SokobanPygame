@@ -240,4 +240,5 @@ if __name__ == '__main__':
         player_group.draw(screen)
         screen.blit(font.render(f'Шагов: {moves}', True, 'black'), (10, 10))
         pygame.display.flip()
+
     pygame.quit()
