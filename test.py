@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
     moveLeft, moveRight, moveUp, moveDown = False, False, False, False
 
-    running = True
+    running, moving = True, False
 
     while running:
         for event in pygame.event.get():
@@ -189,57 +189,113 @@ if __name__ == '__main__':
                     moveDown = False
 
         if moveLeft:
-            if level_1[player.y][player.x - 1] != '#':
-                player.move(player.x - 1, player.y)
+            if level_1[player.y][player.x - 1] != '#' and \
+                    level_1[player.y][player.x - 2] != '#':
+                player.move(player.x - 2, player.y)
                 if pygame.sprite.spritecollideany(player, bottles_group):
-                    if level_1[player.y][player.x - 1] != '#':
-                        pygame.sprite.spritecollideany(player, bottles_group)\
-                            .update(player.x - 1, player.y)
-                        moves += 1
-                    else:
+                    player.move(player.x + 1, player.y)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
                         player.move(player.x + 1, player.y)
                 else:
-                    moves += 1
-            sleep(0.15)
-        if moveRight:
-            if level_1[player.y][player.x + 1] != '#':
-                player.move(player.x + 1, player.y)
-                if pygame.sprite.spritecollideany(player, bottles_group):
-                    if level_1[player.y][player.x + 1] != '#':
-                        pygame.sprite.spritecollideany(player, bottles_group) \
-                            .update(player.x + 1, player.y)
-                        moves += 1
+                    player.move(player.x + 2, player.y)
+                    moving = True
+            else:
+                moving = True
+            if moving:
+                if level_1[player.y][player.x - 1] != '#':
+                    player.move(player.x - 1, player.y)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
+                        if level_1[player.y][player.x - 1] != '#':
+                            pygame.sprite.spritecollideany(player, bottles_group) \
+                                .update(player.x - 1, player.y)
+                            moves += 1
+                        else:
+                            player.move(player.x + 1, player.y)
                     else:
+                        moves += 1
+            sleep(0.15)
+            moving = False
+        if moveRight:
+            if level_1[player.y][player.x + 1] != '#' and \
+                    level_1[player.y][player.x + 2] != '#':
+                player.move(player.x + 2, player.y)
+                if pygame.sprite.spritecollideany(player, bottles_group):
+                    player.move(player.x - 1, player.y)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
                         player.move(player.x - 1, player.y)
                 else:
-                    moves += 1
-            sleep(0.15)
-        if moveUp:
-            if level_1[player.y - 1][player.x] != '#':
-                player.move(player.x, player.y - 1)
-                if pygame.sprite.spritecollideany(player, bottles_group):
-                    if level_1[player.y - 1][player.x] != '#':
-                        pygame.sprite.spritecollideany(player, bottles_group) \
-                            .update(player.x, player.y - 1)
-                        moves += 1
+                    player.move(player.x - 2, player.y)
+                    moving = True
+            else:
+                moving = True
+            if moving:
+                if level_1[player.y][player.x + 1] != '#':
+                    player.move(player.x + 1, player.y)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
+                        if level_1[player.y][player.x + 1] != '#':
+                            pygame.sprite.spritecollideany(player, bottles_group) \
+                                .update(player.x + 1, player.y)
+                            moves += 1
+                        else:
+                            player.move(player.x - 1, player.y)
                     else:
+                        moves += 1
+            sleep(0.15)
+            moving = False
+        if moveUp:
+            if level_1[player.y - 1][player.x] != '#' and \
+                    level_1[player.y - 2][player.x] != '#':
+                player.move(player.x, player.y - 2)
+                if pygame.sprite.spritecollideany(player, bottles_group):
+                    player.move(player.x, player.y + 1)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
                         player.move(player.x, player.y + 1)
                 else:
-                    moves += 1
-            sleep(0.15)
-        if moveDown:
-            if level_1[player.y + 1][player.x] != '#':
-                player.move(player.x, player.y + 1)
-                if pygame.sprite.spritecollideany(player, bottles_group):
-                    if level_1[player.y + 1][player.x] != '#':
-                        pygame.sprite.spritecollideany(player, bottles_group) \
-                            .update(player.x, player.y + 1)
-                        moves += 1
+                    player.move(player.x, player.y + 2)
+                    moving = True
+            else:
+                moving = True
+            if moving:
+                if level_1[player.y - 1][player.x] != '#':
+                    player.move(player.x, player.y - 1)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
+                        if level_1[player.y - 1][player.x] != '#':
+                            pygame.sprite.spritecollideany(player, bottles_group) \
+                                .update(player.x, player.y - 1)
+                            moves += 1
+                        else:
+                            player.move(player.x, player.y + 1)
                     else:
+                        moves += 1
+            sleep(0.15)
+            moving = False
+        if moveDown:
+            if level_1[player.y + 1][player.x] != '#' and \
+                    level_1[player.y + 2][player.x] != '#':
+                player.move(player.x, player.y + 2)
+                if pygame.sprite.spritecollideany(player, bottles_group):
+                    player.move(player.x, player.y - 1)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
                         player.move(player.x, player.y - 1)
                 else:
-                    moves += 1
+                    player.move(player.x, player.y - 2)
+                    moving = True
+            else:
+                moving = True
+            if moving:
+                if level_1[player.y + 1][player.x] != '#':
+                    player.move(player.x, player.y + 1)
+                    if pygame.sprite.spritecollideany(player, bottles_group):
+                        if level_1[player.y + 1][player.x] != '#':
+                            pygame.sprite.spritecollideany(player, bottles_group) \
+                                .update(player.x, player.y + 1)
+                            moves += 1
+                        else:
+                            player.move(player.x, player.y - 1)
+                    else:
+                        moves += 1
             sleep(0.15)
+            moving = False
 
         clock.tick(FPS)
         screen.fill((0, 0, 0))
