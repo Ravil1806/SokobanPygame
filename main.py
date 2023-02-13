@@ -196,6 +196,8 @@ if __name__ == '__main__':
                     player.move(player.x + 1, player.y)
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         player.move(player.x + 1, player.y)
+                    else:
+                        moves += 1
                 else:
                     player.move(player.x + 2, player.y)
                     moving = True
@@ -223,6 +225,8 @@ if __name__ == '__main__':
                     player.move(player.x - 1, player.y)
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         player.move(player.x - 1, player.y)
+                    else:
+                        moves += 1
                 else:
                     player.move(player.x - 2, player.y)
                     moving = True
@@ -250,6 +254,8 @@ if __name__ == '__main__':
                     player.move(player.x, player.y + 1)
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         player.move(player.x, player.y + 1)
+                    else:
+                        moves += 1
                 else:
                     player.move(player.x, player.y + 2)
                     moving = True
@@ -277,6 +283,8 @@ if __name__ == '__main__':
                     player.move(player.x, player.y - 1)
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         player.move(player.x, player.y - 1)
+                    else:
+                        moves += 1
                 else:
                     player.move(player.x, player.y - 2)
                     moving = True
