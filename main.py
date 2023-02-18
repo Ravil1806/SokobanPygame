@@ -7,6 +7,9 @@ FPS = 30
 
 player = None
 moves = 0
+places = {}
+clock = pygame.time.Clock()
+tile_width = tile_height = 50
 
 # 3 группы спрайтов
 all_sprites = pygame.sprite.Group()
@@ -30,8 +33,6 @@ tile_images = {
 }
 player_image = load_image('worker.png')
 bottle_image = load_image('bottle.png')
-clock = pygame.time.Clock()
-tile_width = tile_height = 50
 
 
 # Загрузка уровней
@@ -93,55 +94,61 @@ class Bottle(pygame.sprite.Sprite):
 
     def update(self, x, y):
         self.move(x, y)
-
+        if cur_level[y][x] == '&':
+            places[f'{x} {y}'] = 1
 
 # Заставка игры
-def start_screen():
-    intro_text = ['Нажмите на любую кнопку',
-                  '          для начала игры']
-
-    fon = pygame.transform.scale(load_image('fon.jpg'), (1000, 750))
-    screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 50)
-    text_coord = 200
-    for i in intro_text:
-        string_rendered = font.render(i, True, 'yellow')
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 120
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                return
-        pygame.display.flip()
-        clock.tick(FPS)
+# def start_screen():
+#     intro_text = ['Нажмите на любую кнопку',
+#                   '          для начала игры']
+#
+#     fon = pygame.transform.scale(load_image('fon.jpg'), (1000, 750))
+#     screen.blit(fon, (0, 0))
+#     font = pygame.font.Font(None, 50)
+#     text_coord = 200
+#     for i in intro_text:
+#         string_rendered = font.render(i, True, 'yellow')
+#         intro_rect = string_rendered.get_rect()
+#         text_coord += 10
+#         intro_rect.top = text_coord
+#         intro_rect.x = 120
+#         text_coord += intro_rect.height
+#         screen.blit(string_rendered, intro_rect)
+#
+#     while True:
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 terminate()
+#             elif event.type == pygame.KEYDOWN or \
+#                     event.type == pygame.MOUSEBUTTONDOWN:
+#                 return
+#         pygame.display.flip()
+#         clock.tick(FPS)
 
 
 # Генерация уровня
-def generate_level(level):
+def generate_level(lvl):
     new_player, x, y = None, None, None
-    for y in range(len(level)):
-        for x in range(len(level[y])):
-            if level[y][x] == '.':
+    for y in range(len(lvl)):
+        for x in range(len(lvl[y])):
+            if lvl[y][x] == '.':
                 Tile('empty', x, y)
-            elif level[y][x] == '#':
+            elif lvl[y][x] == '#':
                 Tile('wall', x, y)
-            elif level[y][x] == '@':
+            elif lvl[y][x] == '@':
                 Tile('empty', x, y)
                 new_player = Player(x, y)
-            elif level[y][x] == '$':
+            elif lvl[y][x] == '$':
                 Tile('empty', x, y)
                 Bottle(x, y)
-            elif level[y][x] == '&':
+            elif lvl[y][x] == '&':
+                places[f'{x} {y}'] = 0
                 Tile('place', x, y)
     return new_player, x, y
+
+
+def end_of_the_game():
+    pass
 
 
 # Основной цикл игры
@@ -150,15 +157,19 @@ if __name__ == '__main__':
     pygame.display.set_caption('Кладовщик')
     size = width, height = 1000, 750
     screen = pygame.display.set_mode(size)
-    start_screen()
+    # start_screen()
     font = pygame.font.Font(None, 50)
-    level_1 = load_level('level1.txt')
-    player, level_x, level_y = generate_level(level_1)
+    level = 0
+    levels = [load_level('level1.txt'),
+              load_level('level2.txt')]
+    cur_level = levels[level]
+    player, level_x, level_y = generate_level(cur_level)
     all_sprites.draw(screen)
 
     moveLeft, moveRight, moveUp, moveDown = False, False, False, False
 
-    running, moving = True, False
+    running = True
+    moving = False
 
     while running:
         for event in pygame.event.get():
@@ -189,8 +200,8 @@ if __name__ == '__main__':
                     moveDown = False
 
         if moveLeft:
-            if level_1[player.y][player.x - 1] != '#' and \
-                    level_1[player.y][player.x - 2] != '#':
+            if cur_level[player.y][player.x - 1] != '#' and \
+                    cur_level[player.y][player.x - 2] != '#':
                 player.move(player.x - 2, player.y)
                 if pygame.sprite.spritecollideany(player, bottles_group):
                     player.move(player.x + 1, player.y)
@@ -204,12 +215,20 @@ if __name__ == '__main__':
             else:
                 moving = True
             if moving:
-                if level_1[player.y][player.x - 1] != '#':
+                if cur_level[player.y][player.x - 1] != '#':
                     player.move(player.x - 1, player.y)
                     if pygame.sprite.spritecollideany(player, bottles_group):
-                        if level_1[player.y][player.x - 1] != '#':
+                        if cur_level[player.y][player.x - 1] != '#':
                             pygame.sprite.spritecollideany(player, bottles_group) \
                                 .update(player.x - 1, player.y)
+                            if cur_level[player.y][player.x - 1] == '&':
+                                places[f'{player.x - 1} {player.y}'] = 1
+                                if cur_level[player.y][player.x] == '&':
+                                    places[f'{player.x} {player.y}'] = 0
+                                    places[f'{player.x - 1} {player.y}'] = 1
+                            else:
+                                if cur_level[player.y][player.x] == '&':
+                                    places[f'{player.x} {player.y}'] = 0
                             moves += 1
                         else:
                             player.move(player.x + 1, player.y)
@@ -218,8 +237,8 @@ if __name__ == '__main__':
             sleep(0.15)
             moving = False
         if moveRight:
-            if level_1[player.y][player.x + 1] != '#' and \
-                    level_1[player.y][player.x + 2] != '#':
+            if cur_level[player.y][player.x + 1] != '#' and \
+                    cur_level[player.y][player.x + 2] != '#':
                 player.move(player.x + 2, player.y)
                 if pygame.sprite.spritecollideany(player, bottles_group):
                     player.move(player.x - 1, player.y)
@@ -233,12 +252,20 @@ if __name__ == '__main__':
             else:
                 moving = True
             if moving:
-                if level_1[player.y][player.x + 1] != '#':
+                if cur_level[player.y][player.x + 1] != '#':
                     player.move(player.x + 1, player.y)
                     if pygame.sprite.spritecollideany(player, bottles_group):
-                        if level_1[player.y][player.x + 1] != '#':
+                        if cur_level[player.y][player.x + 1] != '#':
                             pygame.sprite.spritecollideany(player, bottles_group) \
                                 .update(player.x + 1, player.y)
+                            if cur_level[player.y][player.x + 1] == '&':
+                                places[f'{player.x + 1} {player.y}'] = 1
+                                if cur_level[player.y][player.x] == '&':
+                                    places[f'{player.x} {player.y}'] = 0
+                                    places[f'{player.x + 1} {player.y}'] = 1
+                            else:
+                                if cur_level[player.y][player.x] == '&':
+                                    places[f'{player.x} {player.y}'] = 0
                             moves += 1
                         else:
                             player.move(player.x - 1, player.y)
@@ -247,8 +274,8 @@ if __name__ == '__main__':
             sleep(0.15)
             moving = False
         if moveUp:
-            if level_1[player.y - 1][player.x] != '#' and \
-                    level_1[player.y - 2][player.x] != '#':
+            if cur_level[player.y - 1][player.x] != '#' and \
+                    cur_level[player.y - 2][player.x] != '#':
                 player.move(player.x, player.y - 2)
                 if pygame.sprite.spritecollideany(player, bottles_group):
                     player.move(player.x, player.y + 1)
@@ -262,12 +289,20 @@ if __name__ == '__main__':
             else:
                 moving = True
             if moving:
-                if level_1[player.y - 1][player.x] != '#':
+                if cur_level[player.y - 1][player.x] != '#':
                     player.move(player.x, player.y - 1)
                     if pygame.sprite.spritecollideany(player, bottles_group):
-                        if level_1[player.y - 1][player.x] != '#':
+                        if cur_level[player.y - 1][player.x] != '#':
                             pygame.sprite.spritecollideany(player, bottles_group) \
                                 .update(player.x, player.y - 1)
+                            if cur_level[player.y - 1][player.x] == '&':
+                                places[f'{player.x} {player.y - 1}'] = 1
+                                if cur_level[player.y][player.x] == '&':
+                                    places[f'{player.x} {player.y}'] = 0
+                                    places[f'{player.x } {player.y - 1}'] = 1
+                            else:
+                                if cur_level[player.y][player.x] == '&':
+                                    places[f'{player.x} {player.y}'] = 0
                             moves += 1
                         else:
                             player.move(player.x, player.y + 1)
@@ -276,8 +311,8 @@ if __name__ == '__main__':
             sleep(0.15)
             moving = False
         if moveDown:
-            if level_1[player.y + 1][player.x] != '#' and \
-                    level_1[player.y + 2][player.x] != '#':
+            if cur_level[player.y + 1][player.x] != '#' and \
+                    cur_level[player.y + 2][player.x] != '#':
                 player.move(player.x, player.y + 2)
                 if pygame.sprite.spritecollideany(player, bottles_group):
                     player.move(player.x, player.y - 1)
@@ -291,12 +326,20 @@ if __name__ == '__main__':
             else:
                 moving = True
             if moving:
-                if level_1[player.y + 1][player.x] != '#':
+                if cur_level[player.y + 1][player.x] != '#':
                     player.move(player.x, player.y + 1)
                     if pygame.sprite.spritecollideany(player, bottles_group):
-                        if level_1[player.y + 1][player.x] != '#':
+                        if cur_level[player.y + 1][player.x] != '#':
                             pygame.sprite.spritecollideany(player, bottles_group) \
                                 .update(player.x, player.y + 1)
+                            if cur_level[player.y + 1][player.x] == '&':
+                                places[f'{player.x} {player.y + 1}'] = 1
+                                if cur_level[player.y][player.x] == '&':
+                                    places[f'{player.x} {player.y}'] = 0
+                                    places[f'{player.x } {player.y + 1}'] = 1
+                            else:
+                                if cur_level[player.y][player.x] == '&':
+                                    places[f'{player.x} {player.y}'] = 0
                             moves += 1
                         else:
                             player.move(player.x, player.y - 1)
@@ -311,6 +354,22 @@ if __name__ == '__main__':
         bottles_group.draw(screen)
         player_group.draw(screen)
         screen.blit(font.render(f'Шагов: {moves}', True, 'black'), (10, 10))
+        if all(places.values()):
+            level += 1
+            if level < len(levels):
+                cur_level = levels[level]
+                moves = 0
+                screen.blit(font.render(f'Уровень пройден!', True, 'white'), (330, 300))
+                screen.blit(font.render(f'Следующий уровень начнётся через 3 секунды', True, 'white'), (80, 330))
+                sleep(3)
+                for i in all_sprites:
+                    i.kill()
+                places = {}
+                player, level_x, level_y = generate_level(cur_level)
+                all_sprites.draw(screen)
+            else:
+                screen.blit(font.render(f'Вы прошли все уровни!', True, 'white'), (300, 300))
+                for i in all_sprites:
+                    i.kill()
         pygame.display.flip()
-
     pygame.quit()
