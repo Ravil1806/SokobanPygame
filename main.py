@@ -174,7 +174,7 @@ if __name__ == '__main__':
     levels = [load_level('level1.txt'),
               load_level('level2.txt')]
     cur_level = levels[level]  # Текущий уровень в списке
-    player, level_x, level_y = generate_level(cur_level) # Генерация
+    player, level_x, level_y = generate_level(cur_level)  # Генерация
     all_sprites.draw(screen)
 
     moveLeft, moveRight, moveUp, moveDown = False, False, False, False
@@ -193,8 +193,8 @@ if __name__ == '__main__':
         level += 1
         cur_level = levels[level]
         moves = 0
-        for i in all_sprites:
-            i.kill()
+        for sprite in all_sprites:
+            sprite.kill()
         player, level_x, level_y = generate_level(cur_level)
         all_sprites.draw(screen)
 
@@ -211,7 +211,7 @@ if __name__ == '__main__':
         hoverColour='yellow',
         onClick=next_level
     )
-    button.hide() # Прячем кнопку
+    button.hide()  # Прячем кнопку
 
     # Цикл игры
     while running:

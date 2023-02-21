@@ -185,19 +185,19 @@ if __name__ == '__main__':
     moving = False
     end = False
 
-
     # Функция перехода на следцющий уровень по кнопке
     def next_level():
         # Глобал :(
-        global end, level, cur_level, moves, \
+        global places, end, level, cur_level, moves, \
             player, level_x, level_y, all_sprites
         button.hide()
+        places = {}
         end = False
         level += 1
         cur_level = levels[level]
         moves = 0
-        for i in all_sprites:
-            i.kill()
+        for sprite in all_sprites:
+            sprite.kill()
         player, level_x, level_y = generate_level(cur_level)
         all_sprites.draw(screen)
 
@@ -221,9 +221,6 @@ if __name__ == '__main__':
     while running:
         events = pygame.event.get()
         for event in events:
-            # Конец в начале!?
-            if end:
-                button.show()
             # Выход из игры(тоже в начале!?)
             if event.type == pygame.QUIT:
                 terminate()
@@ -457,6 +454,11 @@ if __name__ == '__main__':
                                         'white'), (300, 300))
                 for i in all_sprites:
                     i.kill()
+
+        # Конец уровня
+        if end:
+            screen.blit(font.render('Уровень пройден!', True, 'white'), (400, 10))
+            button.show()
         # Смена кадра
         pygame_widgets.update(events)
         pygame.display.flip()
