@@ -107,6 +107,7 @@ class Bottle(pygame.sprite.Sprite):
         if cur_level[y][x] == '&':
             places[f'{x} {y}'] = 1
 
+
 # Заставка игры
 # def start_screen():
 #     intro_text = ['Нажмите на любую кнопку',
@@ -167,12 +168,13 @@ if __name__ == '__main__':
     pygame.display.set_caption('Кладовщик')  # Название
     size = width, height = 1000, 750  # Размер окна
     screen = pygame.display.set_mode(size)
-    # start_screen()  # Отображнеи заставки
+    # start_screen()  # Отображние заставки
     font = pygame.font.Font(None, 50)
     level = 0  # Текущий уровень - 1
     # Список уровней
-    levels = [load_level('level1.txt'),
-              load_level('level2.txt')]
+    levels = [load_level('test.txt'),
+              load_level('test2.txt'),
+              load_level('test3.txt')]
     cur_level = levels[level]  # Текущий уровень в списке
     player, level_x, level_y = generate_level(cur_level)  # Генерация
     all_sprites.draw(screen)
@@ -183,12 +185,23 @@ if __name__ == '__main__':
     moving = False
     end = False
 
+    pygame.mixer.music.load('data/sounds/music.mp3')
+    pygame.mixer.music.set_volume(0.1)
+    pygame.mixer.music.play()
+    btl_move_sound = pygame.mixer.Sound("data/sounds/bottle_move.mp3")
+    nxt_lvl_sound = pygame.mixer.Sound("data/sounds/next_lvl.mp3")
+    plyr_move_sound = pygame.mixer.Sound("data/sounds/player_move.mp3")
+    btl_move_sound.set_volume(0.3)
+    plyr_move_sound.set_volume(0.5)
+
     # Функция перехода на следцющий уровень по кнопке
     def next_level():
         # Глобал :(
-        global end, level, cur_level, moves, \
+        global places, end, level, cur_level, moves, \
             player, level_x, level_y, all_sprites
+        nxt_lvl_sound.play()
         button.hide()
+        places = {}
         end = False
         level += 1
         cur_level = levels[level]
@@ -198,6 +211,7 @@ if __name__ == '__main__':
         player, level_x, level_y = generate_level(cur_level)
         all_sprites.draw(screen)
 
+
     # Кнопочка
     button = Button(
         screen,
@@ -205,8 +219,8 @@ if __name__ == '__main__':
         5,
         150,
         40,
-        text='След. уровень',
-        fontSize=30,
+        text='Дальше',
+        fontSize=40,
         inactiveColour='yellow',
         hoverColour='yellow',
         onClick=next_level
@@ -217,9 +231,6 @@ if __name__ == '__main__':
     while running:
         events = pygame.event.get()
         for event in events:
-            # Конец в начале!?
-            if end:
-                button.show()
             # Выход из игры(тоже в начале!?)
             if event.type == pygame.QUIT:
                 terminate()
@@ -269,6 +280,7 @@ if __name__ == '__main__':
                     else:
                         # счетчик ходов + 1
                         moves += 1
+                        plyr_move_sound.play()
                 # не бутылка+игрок,не стена,не стена
                 else:
                     # бутылка,бутылка,игрок(значит стоит на месте)
@@ -290,7 +302,7 @@ if __name__ == '__main__':
                         if cur_level[player.y][player.x - 1] != '#':
                             # бутылка,игрок,не стена
                             pygame.sprite.spritecollideany(player,
-                                bottles_group).update(player.x - 1, player.y)
+                                                           bottles_group).update(player.x - 1, player.y)
                             # место,игрок?
                             if cur_level[player.y][player.x - 1] == '&':
                                 # место = 1(бутылка на месте)
@@ -308,12 +320,14 @@ if __name__ == '__main__':
                                     places[f'{player.x} {player.y}'] = 0
                             # счетчик ходов + 1
                             moves += 1
+                            btl_move_sound.play()
                         # стена,игрок+бутылка,не стена
                         else:
                             # стена,бутылка,игрок(стоим на месте)
                             player.move(player.x + 1, player.y)
                     else:
                         # счетчик ходов + 1
+                        plyr_move_sound.play()
                         moves += 1
             # задержка между ходами
             sleep(0.15)
@@ -332,6 +346,7 @@ if __name__ == '__main__':
                         player.move(player.x - 1, player.y)
                     else:
                         moves += 1
+                        plyr_move_sound.play()
                 else:
                     player.move(player.x - 2, player.y)
                     moving = True
@@ -343,7 +358,7 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y][player.x + 1] != '#':
                             pygame.sprite.spritecollideany(player,
-                                bottles_group).update(player.x + 1, player.y)
+                                                           bottles_group).update(player.x + 1, player.y)
                             if cur_level[player.y][player.x + 1] == '&':
                                 places[f'{player.x + 1} {player.y}'] = 1
                                 if cur_level[player.y][player.x] == '&':
@@ -353,10 +368,12 @@ if __name__ == '__main__':
                                 if cur_level[player.y][player.x] == '&':
                                     places[f'{player.x} {player.y}'] = 0
                             moves += 1
+                            btl_move_sound.play()
                         else:
                             player.move(player.x - 1, player.y)
                     else:
                         moves += 1
+                        plyr_move_sound.play()
             sleep(0.15)
             moving = False
 
@@ -370,6 +387,7 @@ if __name__ == '__main__':
                         player.move(player.x, player.y + 1)
                     else:
                         moves += 1
+                        plyr_move_sound.play()
                 else:
                     player.move(player.x, player.y + 2)
                     moving = True
@@ -381,20 +399,22 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y - 1][player.x] != '#':
                             pygame.sprite.spritecollideany(player,
-                                bottles_group).update(player.x, player.y - 1)
+                                                           bottles_group).update(player.x, player.y - 1)
                             if cur_level[player.y - 1][player.x] == '&':
                                 places[f'{player.x} {player.y - 1}'] = 1
                                 if cur_level[player.y][player.x] == '&':
                                     places[f'{player.x} {player.y}'] = 0
-                                    places[f'{player.x } {player.y - 1}'] = 1
+                                    places[f'{player.x} {player.y - 1}'] = 1
                             else:
                                 if cur_level[player.y][player.x] == '&':
                                     places[f'{player.x} {player.y}'] = 0
                             moves += 1
+                            btl_move_sound.play()
                         else:
                             player.move(player.x, player.y + 1)
                     else:
                         moves += 1
+                        plyr_move_sound.play()
             sleep(0.15)
             moving = False
 
@@ -408,6 +428,7 @@ if __name__ == '__main__':
                         player.move(player.x, player.y - 1)
                     else:
                         moves += 1
+                        plyr_move_sound.play()
                 else:
                     player.move(player.x, player.y - 2)
                     moving = True
@@ -419,20 +440,22 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y + 1][player.x] != '#':
                             pygame.sprite.spritecollideany(player,
-                                bottles_group).update(player.x, player.y + 1)
+                                                           bottles_group).update(player.x, player.y + 1)
                             if cur_level[player.y + 1][player.x] == '&':
                                 places[f'{player.x} {player.y + 1}'] = 1
                                 if cur_level[player.y][player.x] == '&':
                                     places[f'{player.x} {player.y}'] = 0
-                                    places[f'{player.x } {player.y + 1}'] = 1
+                                    places[f'{player.x} {player.y + 1}'] = 1
                             else:
                                 if cur_level[player.y][player.x] == '&':
                                     places[f'{player.x} {player.y}'] = 0
                             moves += 1
+                            btl_move_sound.play()
                         else:
                             player.move(player.x, player.y - 1)
                     else:
                         moves += 1
+                        plyr_move_sound.play()
             sleep(0.15)
             moving = False
         # Ураа! Вся основная механика есть
@@ -449,10 +472,18 @@ if __name__ == '__main__':
             if level < len(levels) - 1:  # Еще есть уровни:
                 end = True
             else:  # Последний уровень:
+                pygame.mixer.music.stop()
                 screen.blit(font.render(f'Вы прошли все уровни!', True,
                                         'white'), (300, 300))
+                plyr_move_sound.set_volume(0)
+                btl_move_sound.set_volume(0)
                 for i in all_sprites:
                     i.kill()
+
+        # Конец уровня
+        if end:
+            screen.blit(font.render('Уровень пройден!', True, 'white'), (400, 10))
+            button.show()
         # Смена кадра
         pygame_widgets.update(events)
         pygame.display.flip()
