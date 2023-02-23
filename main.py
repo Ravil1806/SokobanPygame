@@ -6,7 +6,6 @@ import pygame
 import os
 import sys
 
-# Кадры в секунду
 FPS = 30
 
 # Переменные
@@ -161,7 +160,14 @@ def generate_level(lvl):
 
 # Концовка игры
 def end_of_the_game():
-    pass
+    pygame.mixer.music.stop()
+    res_button.hide()
+    screen.blit(font.render(f'Вы прошли все уровни!', True,
+                            'white'), (300, 300))
+    plyr_move_sound.set_volume(0)
+    btl_move_sound.set_volume(0)
+    for i in all_sprites:
+        i.kill()
 
 
 if __name__ == '__main__':
@@ -175,6 +181,11 @@ if __name__ == '__main__':
     font = pygame.font.Font(None, 50)
     level = 0  # Текущий уровень - 1
     # Список уровней
+    # levels = [load_level('level1.txt'),
+    #           load_level('level2.txt'),
+    #           load_level('level3.txt'),
+    #           load_level('level4.txt'),
+    #           load_level('level5.txt')]
     levels = [load_level('test.txt'),
               load_level('test2.txt'),
               load_level('test3.txt')]
@@ -211,11 +222,13 @@ if __name__ == '__main__':
         player, level_x, level_y = generate_level(cur_level)
         all_sprites.draw(screen)
 
+    # Рестарт
     def restart_level():
         # Глобал :(
         global places, end, level, cur_level, moves, \
             player, level_x, level_y, all_sprites
         places = {}
+        button.hide()
         end = False
         cur_level = levels[level]
         moves = 0
@@ -233,6 +246,7 @@ if __name__ == '__main__':
     button.hide()  # Прячем кнопку
 
     # Кнопочка рестарта
+    # Любая ошибка в уровне = рестарт
     res_button = Button(
         screen,
         240, 5, 150, 40, text='Рестарт', fontSize=40, inactiveColour='yellow',
@@ -482,15 +496,8 @@ if __name__ == '__main__':
         if all(places.values()):
             if level < len(levels) - 1:  # Еще есть уровни:
                 end = True
-            else:  # Последний уровень:
-                pygame.mixer.music.stop()
-                res_button.hide()
-                screen.blit(font.render(f'Вы прошли все уровни!', True,
-                                        'white'), (300, 300))
-                plyr_move_sound.set_volume(0)
-                btl_move_sound.set_volume(0)
-                for i in all_sprites:
-                    i.kill()
+            else:  # Был последний уровень:
+                end_of_the_game()
 
         # Конец уровня
         if end:
