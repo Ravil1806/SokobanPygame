@@ -109,32 +109,33 @@ class Bottle(pygame.sprite.Sprite):
 
 
 # Заставка игры
-# def start_screen():
-#     intro_text = ['Нажмите на любую кнопку',
-#                   '          для начала игры']
-#
-#     fon = pygame.transform.scale(load_image('fon.jpg'), (1000, 750))
-#     screen.blit(fon, (0, 0))
-#     font = pygame.font.Font(None, 50)
-#     text_coord = 200
-#     for i in intro_text:
-#         string_rendered = font.render(i, True, 'yellow')
-#         intro_rect = string_rendered.get_rect()
-#         text_coord += 10
-#         intro_rect.top = text_coord
-#         intro_rect.x = 120
-#         text_coord += intro_rect.height
-#         screen.blit(string_rendered, intro_rect)
-#
-#     while True:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 terminate()
-#             elif event.type == pygame.KEYDOWN or \
-#                     event.type == pygame.MOUSEBUTTONDOWN:
-#                 return
-#         pygame.display.flip()
-#         clock.tick(FPS)
+def start_screen():
+    intro_text = ['Нажмите на любую кнопку',
+                  '          для начала игры']
+
+    fon = pygame.transform.scale(load_image('fon.jpg'), (1000, 750))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 50)
+    text_coord = 200
+    for i in intro_text:
+        string_rendered = font.render(i, True, 'yellow')
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 120
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    pygame.mixer.music.play(-1)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 # Генерация уровня
@@ -168,7 +169,9 @@ if __name__ == '__main__':
     pygame.display.set_caption('Кладовщик')  # Название
     size = width, height = 1000, 750  # Размер окна
     screen = pygame.display.set_mode(size)
-    # start_screen()  # Отображние заставки
+    pygame.mixer.music.load('data/sounds/music.mp3')
+    pygame.mixer.music.set_volume(0.025)
+    start_screen()  # Отображние заставки
     font = pygame.font.Font(None, 50)
     level = 0  # Текущий уровень - 1
     # Список уровней
@@ -185,14 +188,11 @@ if __name__ == '__main__':
     moving = False
     end = False
 
-    pygame.mixer.music.load('data/sounds/music.mp3')
-    pygame.mixer.music.set_volume(0.1)
-    pygame.mixer.music.play()
     btl_move_sound = pygame.mixer.Sound("data/sounds/bottle_move.mp3")
     nxt_lvl_sound = pygame.mixer.Sound("data/sounds/next_lvl.mp3")
     plyr_move_sound = pygame.mixer.Sound("data/sounds/player_move.mp3")
-    btl_move_sound.set_volume(0.3)
-    plyr_move_sound.set_volume(0.5)
+    btl_move_sound.set_volume(0.2)
+    plyr_move_sound.set_volume(0.2)
 
     # Функция перехода на следцющий уровень по кнопке
     def next_level():
@@ -211,21 +211,32 @@ if __name__ == '__main__':
         player, level_x, level_y = generate_level(cur_level)
         all_sprites.draw(screen)
 
+    def restart_level():
+        # Глобал :(
+        global places, end, level, cur_level, moves, \
+            player, level_x, level_y, all_sprites
+        places = {}
+        end = False
+        cur_level = levels[level]
+        moves = 0
+        for sprite in all_sprites:
+            sprite.kill()
+        player, level_x, level_y = generate_level(cur_level)
+        all_sprites.draw(screen)
 
-    # Кнопочка
+
+    # Кнопочка перехода дальше
     button = Button(
         screen,
-        840,
-        5,
-        150,
-        40,
-        text='Дальше',
-        fontSize=40,
-        inactiveColour='yellow',
-        hoverColour='yellow',
-        onClick=next_level
-    )
+        840, 5, 150, 40, text='Дальше', fontSize=40, inactiveColour='yellow',
+        hoverColour='yellow', onClick=next_level)
     button.hide()  # Прячем кнопку
+
+    # Кнопочка рестарта
+    res_button = Button(
+        screen,
+        240, 5, 150, 40, text='Рестарт', fontSize=40, inactiveColour='yellow',
+        hoverColour='yellow', pressedColour='green', onClick=restart_level)
 
     # Цикл игры
     while running:
@@ -302,7 +313,7 @@ if __name__ == '__main__':
                         if cur_level[player.y][player.x - 1] != '#':
                             # бутылка,игрок,не стена
                             pygame.sprite.spritecollideany(player,
-                                                           bottles_group).update(player.x - 1, player.y)
+                                bottles_group).update(player.x - 1, player.y)
                             # место,игрок?
                             if cur_level[player.y][player.x - 1] == '&':
                                 # место = 1(бутылка на месте)
@@ -358,7 +369,7 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y][player.x + 1] != '#':
                             pygame.sprite.spritecollideany(player,
-                                                           bottles_group).update(player.x + 1, player.y)
+                                bottles_group).update(player.x + 1, player.y)
                             if cur_level[player.y][player.x + 1] == '&':
                                 places[f'{player.x + 1} {player.y}'] = 1
                                 if cur_level[player.y][player.x] == '&':
@@ -399,7 +410,7 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y - 1][player.x] != '#':
                             pygame.sprite.spritecollideany(player,
-                                                           bottles_group).update(player.x, player.y - 1)
+                                bottles_group).update(player.x, player.y - 1)
                             if cur_level[player.y - 1][player.x] == '&':
                                 places[f'{player.x} {player.y - 1}'] = 1
                                 if cur_level[player.y][player.x] == '&':
@@ -440,7 +451,7 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y + 1][player.x] != '#':
                             pygame.sprite.spritecollideany(player,
-                                                           bottles_group).update(player.x, player.y + 1)
+                                bottles_group).update(player.x, player.y + 1)
                             if cur_level[player.y + 1][player.x] == '&':
                                 places[f'{player.x} {player.y + 1}'] = 1
                                 if cur_level[player.y][player.x] == '&':
@@ -473,6 +484,7 @@ if __name__ == '__main__':
                 end = True
             else:  # Последний уровень:
                 pygame.mixer.music.stop()
+                res_button.hide()
                 screen.blit(font.render(f'Вы прошли все уровни!', True,
                                         'white'), (300, 300))
                 plyr_move_sound.set_volume(0)
@@ -482,7 +494,8 @@ if __name__ == '__main__':
 
         # Конец уровня
         if end:
-            screen.blit(font.render('Уровень пройден!', True, 'white'), (400, 10))
+            screen.blit(font.render('Уровень пройден!', True, 'white'),
+                        (450, 10))
             button.show()
         # Смена кадра
         pygame_widgets.update(events)
