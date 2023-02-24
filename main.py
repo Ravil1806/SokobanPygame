@@ -175,7 +175,9 @@ if __name__ == '__main__':
     pygame.display.set_caption('Кладовщик')  # Название
     size = width, height = 1000, 750  # Размер окна
     screen = pygame.display.set_mode(size)
-    pygame.mixer.music.load('data/sounds/music.mp3')
+    icon = pygame.image.load('icon.png')  # Иконка игры
+    pygame.display.set_icon(icon)
+    pygame.mixer.music.load('data/sounds/music.mp3')  # Музыка
     pygame.mixer.music.set_volume(0.025)
     start_screen()  # Отображние заставки
     font = pygame.font.Font(None, 50)
@@ -492,7 +494,7 @@ if __name__ == '__main__':
         player_group.draw(screen)
         screen.blit(font.render(f'Шагов: {moves}', True, 'black'), (10, 10))
 
-        # Проверка на месте бутылка?
+        # Проверка все ли бутылки на месте
         if all(places.values()):
             if level < len(levels) - 1:  # Еще есть уровни:
                 end = True
