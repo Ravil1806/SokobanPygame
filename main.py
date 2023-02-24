@@ -5,15 +5,19 @@ from pygame_widgets.button import Button
 import pygame
 import os
 import sys
+import sqlite3
 
 FPS = 30
 
 # Переменные
 player = None  # Игрок
 moves = 0  # Шаги
+level = 0  # Начальный уровень
 places = {}  # Ключ = координаты Значение = 0/1(бутылка на месте/нет)
 tile_width = tile_height = 50  # Размер клетки
 clock = pygame.time.Clock()
+con = sqlite3.connect('sokoban_db.sqlite')
+cur = con.cursor()
 
 # Группы спрайтов
 all_sprites = pygame.sprite.Group()
@@ -107,32 +111,59 @@ class Bottle(pygame.sprite.Sprite):
             places[f'{x} {y}'] = 1
 
 
-# Заставка игры
-def start_screen():
-    intro_text = ['Нажмите на любую кнопку',
-                  '          для начала игры']
-
-    fon = pygame.transform.scale(load_image('fon.jpg'), (1000, 750))
-    screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 50)
-    text_coord = 200
-    for i in intro_text:
-        string_rendered = font.render(i, True, 'yellow')
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 120
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
+# Главное мен
+def main_menu():
+    global level
+    background = load_image('fon.jpg')
+    screen.blit(background, (0, 0))
     pygame.mixer.music.play(-1)
+    # Кнопка "продолжить"
+    cont_button = Button(screen, 410, 200, 300, 80,
+                         text='Продолжить уже начатую', fontSize=33,
+                         inactiveColour='yellow', hoverColour='yellow')
+    cont_button.hide()
+    # Кнопка "начать"
+    start_button = Button(screen, 100, 200, 300, 80,
+                          text='Начать новую игру', fontSize=45,
+                          inactiveColour='yellow', hoverColour='yellow')
+    # Кнопка "выход"
+    exit_button = Button(screen, 100, 300, 300, 80,
+                         text='Выход из игры', fontSize=55,
+                         inactiveColour='yellow', hoverColour='yellow')
+    # Проверка на уже пройденные уровни
+    result = cur.execute("""SELECT id_lvl FROM score WHERE moves = 0""")\
+        .fetchall()
+    if 0 < len(result) < 5:
+        cont_button.show()
 
     while True:
-        for event in pygame.event.get():
+        events = pygame.event.get()
+        for event in events:
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if 100 <= event.pos[0] <= 400 and \
+                        200 <= event.pos[1] <= 280:  # Нажатие на кнопку
+                    start_button.hide()
+                    exit_button.hide()
+                    cont_button.hide()
+                    level = 0
+                    cur.execute("""UPDATE score SET moves = 0 
+                    WHERE moves > 0""")
+                    con.commit()
+                    return
+                elif (410 <= event.pos[0] <= 710 and
+                        200 <= event.pos[1] <= 280) and \
+                        cont_button.isVisible():  # Нажатие на кнопку 2
+                    start_button.hide()
+                    exit_button.hide()
+                    cont_button.hide()
+                    level = result[0][0] - 1
+                    return
+                elif 100 <= event.pos[0] <= 400 and \
+                        300 <= event.pos[1] <= 380:  # Нажатие на кнопку 3
+                    terminate()
+        pygame_widgets.update(events)
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -179,9 +210,8 @@ if __name__ == '__main__':
     pygame.display.set_icon(icon)
     pygame.mixer.music.load('data/sounds/music.mp3')  # Музыка
     pygame.mixer.music.set_volume(0.025)
-    start_screen()  # Отображние заставки
+    main_menu()  # Отображние заставки
     font = pygame.font.Font(None, 50)
-    level = 0  # Текущий уровень - 1
     # Список уровней
     # levels = [load_level('level1.txt'),
     #           load_level('level2.txt'),
@@ -190,7 +220,9 @@ if __name__ == '__main__':
     #           load_level('level5.txt')]
     levels = [load_level('test.txt'),
               load_level('test2.txt'),
-              load_level('test3.txt')]
+              load_level('test3.txt'),
+              load_level('test.txt'),
+              load_level('test2.txt')]
     cur_level = levels[level]  # Текущий уровень в списке
     player, level_x, level_y = generate_level(cur_level)  # Генерация
     all_sprites.draw(screen)
@@ -205,6 +237,7 @@ if __name__ == '__main__':
     nxt_lvl_sound = pygame.mixer.Sound("data/sounds/next_lvl.mp3")
     plyr_move_sound = pygame.mixer.Sound("data/sounds/player_move.mp3")
     btl_move_sound.set_volume(0.2)
+    nxt_lvl_sound.set_volume(0.2)
     plyr_move_sound.set_volume(0.2)
 
     # Функция перехода на следцющий уровень по кнопке
@@ -239,25 +272,39 @@ if __name__ == '__main__':
         player, level_x, level_y = generate_level(cur_level)
         all_sprites.draw(screen)
 
+    # Выход в главное меню
+    def go_main_menu():
+        res_button.hide()
+        button.hide()
+        go_menu_button.hide()
+        main_menu()
 
     # Кнопочка перехода дальше
     button = Button(
         screen,
-        840, 5, 150, 40, text='Дальше', fontSize=40, inactiveColour='yellow',
-        hoverColour='yellow', onClick=next_level)
+        840, 5, 150, 40, text='Дальше', fontSize=40,
+        inactiveColour='yellow', hoverColour='yellow', onClick=next_level)
     button.hide()  # Прячем кнопку
 
     # Кнопочка рестарта
     # Любая ошибка в уровне = рестарт
     res_button = Button(
         screen,
-        240, 5, 150, 40, text='Рестарт', fontSize=40, inactiveColour='yellow',
-        hoverColour='yellow', pressedColour='green', onClick=restart_level)
+        240, 5, 150, 40, text='Рестарт', fontSize=40,
+        inactiveColour='yellow', hoverColour='yellow',
+        pressedColour='green', onClick=restart_level)
+
+    go_menu_button = Button(
+        screen,
+        10, 705, 200, 40, text='Главное меню', fontSize=40,
+        inactiveColour='yellow', hoverColour='yellow',
+        pressedColour='green', onClick=go_main_menu)
 
     # Цикл игры
     while running:
         events = pygame.event.get()
         for event in events:
+            go_menu_button.show()
             # Выход из игры(тоже в начале!?)
             if event.type == pygame.QUIT:
                 terminate()
@@ -329,7 +376,8 @@ if __name__ == '__main__':
                         if cur_level[player.y][player.x - 1] != '#':
                             # бутылка,игрок,не стена
                             pygame.sprite.spritecollideany(player,
-                                bottles_group).update(player.x - 1, player.y)
+                                                           bottles_group)\
+                                .update(player.x - 1, player.y)
                             # место,игрок?
                             if cur_level[player.y][player.x - 1] == '&':
                                 # место = 1(бутылка на месте)
@@ -385,7 +433,8 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y][player.x + 1] != '#':
                             pygame.sprite.spritecollideany(player,
-                                bottles_group).update(player.x + 1, player.y)
+                                                           bottles_group).\
+                                update(player.x + 1, player.y)
                             if cur_level[player.y][player.x + 1] == '&':
                                 places[f'{player.x + 1} {player.y}'] = 1
                                 if cur_level[player.y][player.x] == '&':
@@ -426,7 +475,8 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y - 1][player.x] != '#':
                             pygame.sprite.spritecollideany(player,
-                                bottles_group).update(player.x, player.y - 1)
+                                                           bottles_group)\
+                                .update(player.x, player.y - 1)
                             if cur_level[player.y - 1][player.x] == '&':
                                 places[f'{player.x} {player.y - 1}'] = 1
                                 if cur_level[player.y][player.x] == '&':
@@ -467,7 +517,8 @@ if __name__ == '__main__':
                     if pygame.sprite.spritecollideany(player, bottles_group):
                         if cur_level[player.y + 1][player.x] != '#':
                             pygame.sprite.spritecollideany(player,
-                                bottles_group).update(player.x, player.y + 1)
+                                                           bottles_group).\
+                                update(player.x, player.y + 1)
                             if cur_level[player.y + 1][player.x] == '&':
                                 places[f'{player.x} {player.y + 1}'] = 1
                                 if cur_level[player.y][player.x] == '&':
@@ -499,12 +550,18 @@ if __name__ == '__main__':
             if level < len(levels) - 1:  # Еще есть уровни:
                 end = True
             else:  # Был последний уровень:
+                cur.execute(f"""UPDATE score SET moves = {moves}
+                                                WHERE id_lvl = {level + 1}""")
+                con.commit()
                 end_of_the_game()
 
         # Конец уровня
         if end:
             screen.blit(font.render('Уровень пройден!', True, 'white'),
                         (450, 10))
+            cur.execute(f"""UPDATE score SET moves = {moves}
+                                    WHERE id_lvl = {level + 1}""")
+            con.commit()
             button.show()
         # Смена кадра
         pygame_widgets.update(events)
