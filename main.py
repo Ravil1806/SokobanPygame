@@ -67,16 +67,16 @@ def load_level(filename):
 
 
 # Список уровней
-levels = [load_level('level1.txt'),
-          load_level('level2.txt'),
-          load_level('level3.txt'),
-          load_level('level4.txt'),
-          load_level('level5.txt')]
-# levels = [load_level('test.txt'),
-#           load_level('test2.txt'),
-#           load_level('test3.txt'),
-#           load_level('test.txt'),
-#           load_level('test2.txt')]
+# levels = [load_level('level1.txt'),
+#           load_level('level2.txt'),
+#           load_level('level3.txt'),
+#           load_level('level4.txt'),
+#           load_level('level5.txt')]
+levels = [load_level('test.txt'),
+          load_level('test2.txt'),
+          load_level('test3.txt'),
+          load_level('test.txt'),
+          load_level('test2.txt')]
 
 
 # Выход из игры
@@ -168,17 +168,18 @@ all_sprites.draw(screen)
 btl_move_sound = pygame.mixer.Sound("data/sounds/bottle_move.mp3")
 nxt_lvl_sound = pygame.mixer.Sound("data/sounds/next_lvl.mp3")
 plyr_move_sound = pygame.mixer.Sound("data/sounds/player_move.mp3")
-btl_move_sound.set_volume(0.2)
+btl_move_sound.set_volume(0.15)
 nxt_lvl_sound.set_volume(0.2)
-plyr_move_sound.set_volume(0.2)
+plyr_move_sound.set_volume(0.12)
 
 
 # Концовка игры
 def end_of_the_game():
-    pygame.mixer.music.stop()
     res_button.hide()
+    end_background = pygame.transform.scale(load_image('end.jpg'), (width, height))
+    screen.blit(end_background, (0, 0))
     screen.blit(font.render(f'Вы прошли все уровни!', True,
-                            'white'), (300, 300))
+                            'black'), (300, 300))
     plyr_move_sound.set_volume(0)
     btl_move_sound.set_volume(0)
     for i in all_sprites:
@@ -287,8 +288,8 @@ def main_menu():
                     start_button.hide()
                     exit_button.hide()
                     cont_button.hide()
-                    btl_move_sound.set_volume(0.2)
-                    plyr_move_sound.set_volume(0.2)
+                    btl_move_sound.set_volume(0.15)
+                    plyr_move_sound.set_volume(0.1)
                     level = 0
                     cur.execute("""UPDATE score SET moves = 0 
                     WHERE moves > 0""")
