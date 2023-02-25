@@ -50,7 +50,7 @@ pygame.init()  # Инициализация
 pygame.display.set_caption('Кладовщик')  # Название
 size = width, height = 1000, 750  # Размер окна
 screen = pygame.display.set_mode(size)
-icon = pygame.image.load('icon.png')  # Иконка игры
+icon = pygame.image.load('data/icon.png')  # Иконка игры
 pygame.display.set_icon(icon)
 pygame.mixer.music.load('data/sounds/music.mp3')  # Музыка
 pygame.mixer.music.play(-1)
@@ -421,7 +421,7 @@ while running:
                     plyr_move_sound.play()
                     moves += 1
         # задержка между ходами
-        sleep(0.15)
+        sleep(0.2)
         # нет движению!
         moving = False
 
@@ -465,7 +465,7 @@ while running:
                 else:
                     moves += 1
                     plyr_move_sound.play()
-        sleep(0.15)
+        sleep(0.2)
         moving = False
 
     if moveUp:
@@ -507,7 +507,7 @@ while running:
                 else:
                     moves += 1
                     plyr_move_sound.play()
-        sleep(0.15)
+        sleep(0.2)
         moving = False
 
     if moveDown:
@@ -549,7 +549,7 @@ while running:
                 else:
                     moves += 1
                     plyr_move_sound.play()
-        sleep(0.15)
+        sleep(0.2)
         moving = False
     # Ураа! Вся основная механика есть
     # Рисуем спрайты и счетчик:
