@@ -111,12 +111,32 @@ class Bottle(pygame.sprite.Sprite):
             places[f'{x} {y}'] = 1
 
 
-# Главное мен
+# Генерация уровня
+def generate_level(lvl):
+    new_player, x, y = None, None, None
+    for y in range(len(lvl)):
+        for x in range(len(lvl[y])):
+            if lvl[y][x] == '.':
+                Tile('empty', x, y)
+            elif lvl[y][x] == '#':
+                Tile('wall', x, y)
+            elif lvl[y][x] == '@':
+                Tile('empty', x, y)
+                new_player = Player(x, y)
+            elif lvl[y][x] == '$':
+                Tile('empty', x, y)
+                Bottle(x, y)
+            elif lvl[y][x] == '&':
+                places[f'{x} {y}'] = 0
+                Tile('place', x, y)
+    return new_player, x, y
+
+
+# Главное меню
 def main_menu():
     global level
     background = load_image('fon.jpg')
     screen.blit(background, (0, 0))
-    pygame.mixer.music.play(-1)
     # Кнопка "продолжить"
     cont_button = Button(screen, 410, 200, 300, 80,
                          text='Продолжить уже начатую', fontSize=33,
@@ -168,27 +188,6 @@ def main_menu():
         clock.tick(FPS)
 
 
-# Генерация уровня
-def generate_level(lvl):
-    new_player, x, y = None, None, None
-    for y in range(len(lvl)):
-        for x in range(len(lvl[y])):
-            if lvl[y][x] == '.':
-                Tile('empty', x, y)
-            elif lvl[y][x] == '#':
-                Tile('wall', x, y)
-            elif lvl[y][x] == '@':
-                Tile('empty', x, y)
-                new_player = Player(x, y)
-            elif lvl[y][x] == '$':
-                Tile('empty', x, y)
-                Bottle(x, y)
-            elif lvl[y][x] == '&':
-                places[f'{x} {y}'] = 0
-                Tile('place', x, y)
-    return new_player, x, y
-
-
 # Концовка игры
 def end_of_the_game():
     pygame.mixer.music.stop()
@@ -209,6 +208,7 @@ if __name__ == '__main__':
     icon = pygame.image.load('icon.png')  # Иконка игры
     pygame.display.set_icon(icon)
     pygame.mixer.music.load('data/sounds/music.mp3')  # Музыка
+    pygame.mixer.music.play(-1)
     pygame.mixer.music.set_volume(0.025)
     main_menu()  # Отображние заставки
     font = pygame.font.Font(None, 50)
@@ -305,6 +305,7 @@ if __name__ == '__main__':
         events = pygame.event.get()
         for event in events:
             go_menu_button.show()
+            res_button.show()
             # Выход из игры(тоже в начале!?)
             if event.type == pygame.QUIT:
                 terminate()
@@ -410,7 +411,6 @@ if __name__ == '__main__':
             moving = False
 
         # и так по аналогии со всеми
-        # (мне лень делать коменты для каждой проверки и движения)
         if moveRight:
             if cur_level[player.y][player.x + 1] != '#' and \
                     cur_level[player.y][player.x + 2] != '#':
